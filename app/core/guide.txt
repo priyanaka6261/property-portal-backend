@@ -1,0 +1,164 @@
+Frontend / Swagger / Postman
+        ↓
+FastAPI App (main.py)
+        ↓
+API Routes
+        ↓
+Dependencies (Auth + DB)
+        ↓
+Services (Business Logic)
+        ↓
+Models (Database Structure)
+        ↓
+Database (SQLite/PostgreSQL)
+        ↓
+Response returned to user
+
+
+
+backend folder 
+app/
+ ┣ api/
+ ┣ services/
+ ┣ models/
+ ┣ schemas/
+ ┣ dependencies/
+ ┣ core/
+ ┣ main.py
+
+
+📁 app/main.py
+Responsibilities:
+
+✔ Creates FastAPI app
+✔ Connects routers
+✔ Creates database tables
+✔ Starts server
+👉 ENTRY POINT OF APPLICATION
+
+This file starts your backend server.
+main.py = Main gate of building
+
+📁 app/api/
+
+👉 Handles HTTP requests (Routes / Endpoints)
+
+auth_routes.py
+property_routes.py
+Responsibilities:
+✔ Receives user request
+✔ Validates request
+✔ Calls service layer
+✔ Returns response
+
+
+📁 app/services/
+
+👉 BUSINESS LOGIC LAYER
+
+auth_service.py
+property_service.py
+Responsibilities:
+✔ Actual work happens here
+✔ CRUD operations
+✔ Authorization logic
+✔ Data processing
+
+📁 app/models/
+
+👉 DATABASE TABLE STRUCTURE
+
+user_model.py
+property_model.py
+Responsibilities:
+✔ Defines tables
+✔ Defines relationships
+✔ Defines columns
+
+
+Models = Blueprint of database
+
+📁 app/schemas/
+
+👉 DATA VALIDATION + RESPONSE FORMAT
+user_schema.py
+property_schema.py
+Responsibilities:
+✔ Validate incoming data
+✔ Define response format
+✔ Prevent invalid input
+
+📁 app/dependencies/
+
+👉 REUSABLE LOGIC INJECTION
+auth_dependency.py
+Responsibilities:
+✔ JWT validation
+✔ Extract logged user
+✔ Role checking
+✔ Database session injection
+
+📁 app/core/
+
+👉 APPLICATION INFRASTRUCTURE
+
+Contains:
+config.py
+
+✔ Environment settings
+✔ Secret keys
+
+database.py
+
+✔ Database connection
+✔ Session creation
+
+security.py
+
+✔ Password hashing
+✔ JWT token creation
+✔ Token validation
+
+STEP 1 — User Sends Request
+POST /auth/login
+
+⭐ STEP 2 — main.py Receives Request
+
+Router registered inside main.py sends request to:
+
+auth_routes.py
+
+⭐ STEP 3 — API Route Executes
+
+auth_routes:
+
+✔ Receives email/password
+✔ Calls auth_service
+
+⭐ STEP 4 — Service Layer Executes
+
+auth_service:
+
+✔ Checks database
+✔ Verifies password
+✔ Generates JWT token
+
+⭐ STEP 5 — Model Layer Used
+
+User model used to fetch data.
+
+⭐ STEP 6 — Security Layer Used
+
+security.py:
+
+✔ Password hashing
+✔ JWT token creation
+
+⭐ STEP 7 — Response Sent Back
+Token returned to frontend
+
+🏆 4. PROPERTY CREATION FLOW
+
+Example:
+
+POST /properties

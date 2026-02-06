@@ -1,0 +1,15 @@
+# Virtual environment
+venv/
+
+# Database
+property.db
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Frontend folder (since you want backend only)
+frontend/
+
+# OS files
+.DS_Store

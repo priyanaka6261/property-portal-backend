@@ -1,0 +1,206 @@
+User Request
+     ↓
+main.py
+     ↓
+api/routes
+     ↓
+dependencies (auth + db)
+     ↓
+services (logic)
+     ↓
+models
+     ↓
+database
+     ↓
+response
+
+
+
+
+
+⭐ STEP-BY-STEP EXECUTION FLOW
+
+Let’s take example:
+
+POST /properties
+
+
+User creates property.
+
+🔹 STEP 1 — Request Comes From Client
+
+Client = Swagger / Frontend / Postman
+
+Example request:
+
+POST /properties
+
+
+User sends:
+
+Property data
+
+JWT token
+
+🔹 STEP 2 — main.py Executes First
+
+📁 main.py
+
+Responsibility
+
+👉 Entry point of application
+👉 Starts FastAPI server
+👉 Registers routes
+
+Code Concept
+app.include_router(property_routes.router)
+
+
+👉 Connects routes to server.
+
+🔹 STEP 3 — Request Goes To Routes Folder
+
+📁 api/property_routes.py
+
+Responsibility
+
+👉 Handles HTTP requests
+👉 Validates request body
+👉 Calls services
+👉 Controls response
+
+Example:
+
+@router.post("/")
+
+
+This means:
+
+👉 Handle POST request for property creation.
+
+🔹 STEP 4 — Dependencies Run
+
+📁 dependencies/auth_dependency.py
+
+Responsibility
+
+👉 Authentication
+👉 Authorization
+👉 Extract user from token
+
+Example:
+
+user = Depends(get_current_user)
+
+
+This:
+
+✔ Reads JWT token
+✔ Validates token
+✔ Returns user info
+
+🔹 STEP 5 — Database Dependency Runs
+
+Inside route:
+
+db = Depends(get_db)
+
+Responsibility
+
+👉 Creates database session
+👉 Connects route to database
+
+🔹 STEP 6 — Route Calls Service Layer
+
+📁 services/property_service.py
+
+Responsibility
+
+👉 Business logic
+👉 Authorization logic
+👉 Database operations
+
+Example:
+
+property_service.create_property()
+
+
+Service decides:
+
+✔ Who can create property
+✔ Assign ownership
+✔ Process data
+
+🔹 STEP 7 — Service Uses Models
+
+📁 models/property_model.py
+
+Responsibility
+
+👉 Defines database table structure
+
+Example:
+
+Property table columns
+
+🔹 STEP 8 — SQLAlchemy Talks To Database
+
+📁 core/database.py
+
+Responsibility
+
+👉 Creates DB connection
+👉 Executes SQL queries
+
+🔹 STEP 9 — Response Sent Back
+
+Service returns object →
+Route converts object → JSON →
+Client receives response.
+
+
+
+
+
+fastapi → API framework
+
+uvicorn → Server runner
+
+sqlalchemy → ORM database handler
+
+python-jose → JWT token handling
+
+passlib[argon2] → Password hashing
+
+pydantic-settings → Environment configuration
+
+email-validator → Validates EmailStr
+
+
+#folsder wise opportunity
+api\\ request handling
+end poitns 
+call seriviced 
+process data 4
+ownershi[ ] validation
+    models
+
+    define tables
+    define relationship
+
+
+    reusablr logic injection
+    api infrastructure
+    register routes
+
+
+easy debugging
+clean Code
+scalable
+industry standard
+logic wrong
+check services
+check dependencies
+check schemas
+validation error
+i will verify
