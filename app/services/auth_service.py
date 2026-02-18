@@ -1,88 +1,51 @@
-# Import User database model
+from sqlalchemy.orm import Session
 from app.models.user_model import User
-
-# Import security service for hashing & token generation
-from app.core.security import security_service
+from app.core.security import get_password_hash, verify_password, create_access_token
 
 
 class AuthService:
-    """
-    AuthService handles all authentication related business logic.
 
-    Responsibilities:
-    - Register new users
-    - Validate login credentials
-    - Generate JWT tokens
-    """
-
-    # =========================
     # REGISTER USER
-    # =========================
-    def register(self, db, user_data):
-        """
-        Registers new user in database.
+    def register_user(self, db: Session, email: str, password: str, role: str):
 
-        Parameters:
-        db → Database session
-        user_data → Data from request body
-        """
+        existing_user = db.query(User).filter(User.email == email).first()
+        if existing_user:
+            raise Exception("User already exists")
 
-        # Hash password before storing (security best practice)
-        hashed_password = security_service.hash_password(user_data.password)
+        hashed_password = get_password_hash(password)
 
-        # Create user object
-        user = User(
-            email=user_data.email,
-
-            # Store hashed password
+        new_user = User(
+            email=email,
             password=hashed_password,
-
-            # Store role (enum value converted to string)
-            role=user_data.role.value
+            role=role
         )
 
-        # Save user in database
-        db.add(user)
+        db.add(new_user)
         db.commit()
+        db.refresh(new_user)
 
-        return user
+        return {
+            "message": "User registered successfully",
+            "user_id": new_user.id
+        }
 
-    # =========================
     # LOGIN USER
-    # =========================
 
-    def login(self, db, user_data):
-        """
-        Validates user login credentials and generates JWT token.
-        """
+    def login_user(self, db: Session, email: str, password: str):
 
-        # Find user using email
-        user = db.query(User).filter(User.email == user_data.email).first()
+        user = db.query(User).filter(User.email == email).first()
 
-        # If user not found → login fails
         if not user:
-            return None
+            raise Exception("Invalid email")
 
-        # Verify password using hashed password
-        if not security_service.verify_password(user_data.password, user.password):
-            return None
+        if not verify_password(password, user.password):
+            raise Exception("Invalid password")
 
-        # Create JWT token
-        token = security_service.create_token({
+        token = create_access_token(
+            {"user_id": user.id, "role": user.role}
+        )
 
-            # VERY IMPORTANT → Include user ID for ownership logic
-            "id": user.id,
-
-            # Used for user identification
-            "email": user.email,
-
-            # Used for role-based authorization
-            "role": user.role
-        })
-
-        # Return token to client
-        return {"access_token": token}
-
-
-# Create reusable service instance
-auth_service = AuthService()
+        return {
+            "access_token": token,
+            "token_type": "bearer"
+        }

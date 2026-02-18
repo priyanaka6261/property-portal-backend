@@ -1,43 +1,47 @@
-from jose import jwt, JWTError
-from passlib.context import CryptContext
 from datetime import datetime, timedelta
-from app.core.config import settings
+from jose import jwt, JWTError
+from fastapi import HTTPException, status
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
+
+# 🔐 JWT settings
+SECRET_KEY = "supersecretkey"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+# 🔑 Argon2 password hasher
+ph = PasswordHasher()
 
 
-# Argon2 hashing algorithm
-pwd_context = CryptContext(schemes=["argon2"])
+# ✅ HASH PASSWORD
+def get_password_hash(password: str):
+    return ph.hash(password)
 
 
-class SecurityService:
+# ✅ VERIFY PASSWORD
+def verify_password(plain_password: str, hashed_password: str):
+    try:
+        ph.verify(hashed_password, plain_password)
+        return True
+    except VerifyMismatchError:
+        return False
 
-    # Converts plain password into hashed password
-    def hash_password(self, password):
-        return pwd_context.hash(password)
 
-    # Verifies login password
-    def verify_password(self, password, hashed):
-        return pwd_context.verify(password, hashed)
+# ✅ CREATE JWT TOKEN
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-    # Generates JWT token
-    def create_token(self, data):
 
-        payload = data.copy()
-
-        # Token expiration
-        payload["exp"] = datetime.utcnow() + timedelta(hours=2)
-
-        return jwt.encode(
-            payload,
-            settings.SECRET_KEY,
-            algorithm=settings.ALGORITHM
+# ✅ DECODE TOKEN
+def decode_access_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
         )
-
-    # Decodes JWT token
-    def decode_token(self, token):
-        try:
-            return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        except JWTError:
-            return None
-
-
-security_service = SecurityService()

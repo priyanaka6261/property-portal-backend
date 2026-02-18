@@ -1,13 +1,17 @@
 from fastapi import FastAPI
-from app.core.database import Base, engine
+from fastapi.security import OAuth2PasswordBearer
 from app.api import auth_routes, property_routes
+from app.core.database import Base, engine
 
-
-# Automatically creates tables
+# Create database tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Property Portal API")
+app = FastAPI(
+    title="Property Portal API",
+    version="0.1.0",
+    description="Secure Property Management API with JWT Authentication"
+)
 
-# Register routes
+# Include routers
 app.include_router(auth_routes.router)
 app.include_router(property_routes.router)

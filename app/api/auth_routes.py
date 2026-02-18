@@ -1,30 +1,29 @@
-from fastapi import APIRouter, Depends, HTTPException
-from app.schemas.user_schema import UserCreate, UserResponse, UserLogin
-from app.services.auth_service import auth_service
-from app.core.database import SessionLocal
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.dependencies.auth_dependency import get_db
+from app.core.database import get_db
 
-router = APIRouter(prefix="/auth")
+from app.schemas.user_schema import RegisterRequest, LoginRequest
+from app.services.auth_service import AuthService
 
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+router = APIRouter(prefix="/auth", tags=["Auth"])
+auth_service = AuthService()
 
 
-@router.post("/register", response_model=UserResponse)
-def register(user: UserCreate, db=Depends(get_db)):
-    return auth_service.register(db, user)
+@router.post("/register")
+def register(data: RegisterRequest, db: Session = Depends(get_db)):
+    return auth_service.register_user(
+        db,
+        data.email,
+        data.password,
+        data.role
+    )
 
 
 @router.post("/login")
-def login(user: UserLogin, db=Depends(get_db)):
-
-    token = auth_service.login(db, user)
-
-    if not token:
-        raise HTTPException(status_code=400, detail="Invalid Credentials")
-
-    return token
+def login(data: LoginRequest, db: Session = Depends(get_db)):
+    return auth_service.login_user(
+        db,
+        data.email,
+        data.password
+    )
