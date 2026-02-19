@@ -3,6 +3,7 @@ from app.schemas.property_schema import PropertyCreate, PropertyResponse
 from app.services.property_service import property_service
 from app.dependencies.auth_dependency import get_current_user
 from app.core.database import get_db
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/properties")
 
@@ -28,10 +29,23 @@ def my_properties(db=Depends(get_db), user=Depends(get_current_user)):
 
 
 @router.get("/search")
-def search(location: str = None, min_price: float = None, max_price: float = None, db=Depends(get_db)):
+def search_properties(
+    location: str | None = None,
+    min_price: float | None = None,
+    max_price: float | None = None,
+    db: Session = Depends(get_db)
+):
     return property_service.search_properties(db, location, min_price, max_price)
 
 
 @router.get("/stats")
 def stats(db=Depends(get_db)):
     return property_service.property_stats(db)
+
+
+@router.get("/")
+def get_all_properties(
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    return property_service.get_all_properties(db)

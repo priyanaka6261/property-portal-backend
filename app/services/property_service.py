@@ -6,25 +6,25 @@ Handles role-based access and ownership.
 from app.models.property_model import Property
 from app.models.property_model import Property
 from sqlalchemy import func
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 
 class PropertyService:
 
-    def create_property(self, db, property_data, user):
-        """
-        Only admin or agent can create property.
-        """
+    def create_property(self, db: Session, property_data, user):
 
-        # FIX: user is dict → use ["role"]
+        # ✅ user is dict → use []
         if user["role"] not in ["admin", "agent"]:
-            raise Exception("Not authorized to create property")
+            raise HTTPException(
+                status_code=403, detail="Not allowed to create property")
 
         new_property = Property(
             title=property_data.title,
             location=property_data.location,
             price=property_data.price,
             status=property_data.status,
-            owner_id=user["id"]  # FIX
+            owner_id=user["id"]
         )
 
         db.add(new_property)
@@ -32,6 +32,11 @@ class PropertyService:
         db.refresh(new_property)
 
         return new_property
+        """
+        Only admin or agent can create property.
+        """
+
+        # FIX: user is dict → use ["role"]
 
     def get_my_properties(self, db, user):
         """
@@ -93,6 +98,38 @@ class PropertyService:
         db.refresh(prop)
 
         return prop
+        # ✅ SEARCH PROPERTIES
+
+    def search_properties(self, db, location=None, min_price=None, max_price=None):
+
+        query = db.query(Property)
+
+        if location:
+            query = query.filter(Property.location.ilike(f"%{location}%"))
+
+        if min_price:
+            query = query.filter(Property.price >= min_price)
+
+        if max_price:
+            query = query.filter(Property.price <= max_price)
+
+        return query.all()
+
+    def get_all_properties(self, db):
+        properties = db.query(Property).all()
+
+        return [
+            {
+                "id": p.id,
+                "title": p.title,
+                "description": p.description,
+                "price": p.price,
+                "location": p.location,
+                "status": p.status,
+                "owner_id": p.owner_id
+            }
+            for p in properties
+        ]
 
 
 property_service = PropertyService()
