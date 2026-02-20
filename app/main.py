@@ -5,7 +5,7 @@ from app.core.database import Base, engine
 from app.core.middleware import logging_middleware
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Property Portal API",
