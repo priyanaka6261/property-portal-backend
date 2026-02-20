@@ -122,7 +122,6 @@ class PropertyService:
             {
                 "id": p.id,
                 "title": p.title,
-                "description": p.description,
                 "price": p.price,
                 "location": p.location,
                 "status": p.status,
